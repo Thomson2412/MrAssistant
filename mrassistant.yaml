@@ -1,0 +1,104 @@
+esphome:
+  name: mrassistant
+  friendly_name: "Mr Assistant"
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+    version: recommended
+
+# Enable logging
+logger:
+  # level: INFO
+
+# Enable Home Assistant API
+api:
+  password: ""
+
+ota:
+  - platform: esphome
+    password: ""
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Mrassistant Fallback Hotspot"
+    password: "Cim4W4fjWQ6H"
+
+captive_portal:
+
+# I2S Audio configuration
+i2s_audio:
+  - id: i2s_bus
+    i2s_lrclk_pin: GPIO15
+    i2s_bclk_pin: GPIO16
+
+# Microphone configuration
+microphone:
+  - platform: i2s_audio
+    id: mic
+    i2s_audio_id: i2s_bus
+    i2s_din_pin: GPIO2
+    adc_type: external
+    pdm: false
+    bits_per_sample: 32bit
+    channel: left
+
+# Speaker configuration
+speaker:
+  - platform: i2s_audio
+    id: speaker_id
+    i2s_audio_id: i2s_bus
+    i2s_dout_pin: GPIO17
+    dac_type: external
+    channel: mono
+
+# Simple GPIO LED output
+output:
+  - platform: gpio
+    pin: GPIO48  # ESP32-S3 onboard LED pin
+    id: status_led_output
+
+# Wake word detection
+micro_wake_word:
+  models:
+    - model: okay_nabu
+  on_wake_word_detected:
+    - voice_assistant.start:
+        wake_word: !lambda return wake_word;
+
+# Voice assistant configuration
+voice_assistant:
+  microphone: mic
+  speaker: speaker_id
+  noise_suppression_level: 2
+  auto_gain: 31dBFS
+  volume_multiplier: 2.0
+  
+  on_listening:
+    - logger.log: "Voice assistant listening"
+  
+  on_start:
+    - logger.log: "Voice assistant started"
+  
+  on_wake_word_detected:
+    - logger.log: "Wake word detected by voice assistant"
+  
+  on_stt_vad_end:
+    - logger.log: "Speech ended"
+  
+  on_tts_start:
+    - logger.log: "TTS started"
+  
+  on_tts_end:
+    - logger.log: "TTS ended"
+  
+  on_end:
+    - logger.log: "Voice assistant ended"
+  
+  on_error:
+    - logger.log: "Voice assistant error"
