@@ -1,0 +1,15 @@
+[project]
+name = "mrassistant"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "esphome>=2025.6.3",
+    "pip>=25.1.1",
+]
+
+[tool.uv.workspace]
+members = [
+    "package",
+]

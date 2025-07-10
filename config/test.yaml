@@ -1,0 +1,32 @@
+esphome:
+  name: esp32s3-debug-led
+  friendly_name: ESP32-S3 Debug LED
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+  variant: esp32s3
+
+# Enable logging
+logger:
+
+# LED output pin
+output:
+  - platform: gpio
+    pin: GPIO10
+    id: debug_led
+
+# Light component for the LED
+light:
+  - platform: binary
+    name: "Debug LED"
+    output: debug_led
+    id: led
+
+# Blink the LED every second
+interval:
+  - interval: 1s
+    then:
+      - light.toggle: led
+      - logger.log: "ESP32-S3 is alive - LED toggled"
