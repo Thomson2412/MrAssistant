@@ -1,0 +1,74 @@
+esphome:
+  name: inmp441-test
+  friendly_name: "INMP441 Test"
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+    version: recommended
+
+# Enable logging
+logger:
+  level: DEBUG
+
+# Enable Home Assistant API
+api:
+  password: ""
+
+ota:
+  - platform: esphome
+    password: ""
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "INMP441-Test Fallback Hotspot"
+    password: "TestPassword"
+
+captive_portal:
+
+# I2S Audio configuration
+i2s_audio:
+  - id: i2s_bus
+    i2s_lrclk_pin: GPIO15
+    i2s_bclk_pin: GPIO16
+
+# Microphone configuration
+microphone:
+  - platform: i2s_audio
+    id: mic
+    i2s_audio_id: i2s_bus
+    i2s_din_pin: GPIO18
+    adc_type: external
+    pdm: false
+    bits_per_sample: 32bit
+    channel: left
+
+# Simple voice assistant for testing
+voice_assistant:
+  microphone: mic
+  on_listening:
+    - logger.log: "INMP441 is working - listening for voice"
+  on_end:
+    - logger.log: "Voice assistant stopped"
+  on_error:
+    - logger.log: "Voice assistant error - check INMP441 wiring"
+
+# Button to manually start voice assistant
+binary_sensor:
+  - platform: gpio
+    pin: 
+      number: GPIO0  # Boot button on ESP32-S3
+      inverted: true
+      mode:
+        input: true
+        pullup: true
+    name: "Test Voice Assistant"
+    on_press:
+      then:
+        - logger.log: "Starting voice assistant test..."
+        - voice_assistant.start_continuous:
