@@ -42,7 +42,7 @@ microphone:
   - platform: i2s_audio
     id: mic
     i2s_audio_id: i2s_bus
-    i2s_din_pin: GPIO2
+    i2s_din_pin: GPIO18
     adc_type: external
     pdm: false
     bits_per_sample: 32bit
@@ -57,11 +57,28 @@ speaker:
     dac_type: external
     channel: mono
 
-# Simple GPIO LED output
-output:
-  - platform: gpio
-    pin: GPIO48  # ESP32-S3 onboard LED pin
-    id: status_led_output
+# GPIO outputs
+output:  
+  # MAX98357A gain control output (PWM)
+  - platform: ledc
+    pin: GPIO4
+    id: max98357a_gain_control
+    frequency: 1000Hz
+
+# Number component for gain control
+number:
+  - platform: template
+    name: "MAX98357A Gain"
+    id: max98357a_gain
+    min_value: 0
+    max_value: 100
+    step: 1
+    initial_value: 50
+    mode: slider
+    set_action:
+      - output.set_level:
+          id: max98357a_gain_control
+          level: !lambda 'return x / 100.0;'
 
 # Wake word detection
 micro_wake_word:
