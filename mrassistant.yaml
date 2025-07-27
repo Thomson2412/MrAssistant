@@ -1,3 +1,4 @@
+# https://github.com/esphome/home-assistant-voice-pe/blob/8178e25aceb4f08b0f2e932dc902974dc7f1632a/home-assistant-voice.yaml
 esphome:
   name: mrassistant
   friendly_name: "Mr Assistant"
@@ -10,7 +11,7 @@ esp32:
 
 # Enable logging
 logger:
-  # level: INFO
+  level: DEBUG
 
 # Enable Home Assistant API
 api:
@@ -23,28 +24,36 @@ ota:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
-
-  # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
     ssid: "Mrassistant Fallback Hotspot"
     password: "Cim4W4fjWQ6H"
 
 captive_portal:
 
-# I2S Audio configuration
+# I2S Audio configuration  
 i2s_audio:
-  - id: i2s_bus
-    i2s_lrclk_pin: GPIO15
-    i2s_bclk_pin: GPIO16
+  - id: i2s_input
+    # data line is GPIO11
+    i2s_lrclk_pin:
+      number: GPIO09
+    i2s_bclk_pin:
+      number: GPIO10
 
-# Microphone configuration
+  - id: i2s_output
+    # i2s_output data pin is GPIO07
+    i2s_lrclk_pin:
+      number: GPIO5
+    i2s_bclk_pin:
+      number: GPIO6
+
+# Microphone configuration  
 microphone:
   - platform: i2s_audio
     id: mic
-    i2s_audio_id: i2s_bus
-    i2s_din_pin: GPIO18
+    i2s_audio_id: i2s_input
+    i2s_din_pin: GPIO11
     adc_type: external
-    pdm: false
+    sample_rate: 16000
     bits_per_sample: 32bit
     channel: left
 
@@ -52,53 +61,49 @@ microphone:
 speaker:
   - platform: i2s_audio
     id: speaker_id
-    i2s_audio_id: i2s_bus
-    i2s_dout_pin: GPIO17
+    i2s_audio_id: i2s_output
+    i2s_dout_pin: GPIO07
+    bits_per_sample: 32bit
     dac_type: external
     channel: mono
-
-# GPIO outputs
-output:  
-  # MAX98357A gain control output (PWM)
-  - platform: ledc
-    pin: GPIO4
-    id: max98357a_gain_control
-    frequency: 1000Hz
-
-# Number component for gain control
-number:
-  - platform: template
-    name: "MAX98357A Gain"
-    id: max98357a_gain
-    min_value: 0
-    max_value: 100
-    step: 1
-    initial_value: 50
-    mode: slider
-    set_action:
-      - output.set_level:
-          id: max98357a_gain_control
-          level: !lambda 'return x / 100.0;'
+    timeout: never
+    sample_rate: 48000
+    buffer_duration: 100ms
 
 # Wake word detection
 micro_wake_word:
+  id: mww
   models:
     - model: okay_nabu
+  microphone:
+    microphone: mic
+    channels: 0
+    gain_factor: 4
+  stop_after_detection: false
+  vad:
   on_wake_word_detected:
-    - voice_assistant.start:
-        wake_word: !lambda return wake_word;
+    then:
+      - voice_assistant.start:
+          wake_word: !lambda return wake_word;
 
 # Voice assistant configuration
 voice_assistant:
-  microphone: mic
+  microphone:
+    microphone: mic
+    channels: 0
   speaker: speaker_id
-  noise_suppression_level: 2
-  auto_gain: 31dBFS
-  volume_multiplier: 2.0
+  noise_suppression_level: 0
+  auto_gain: 0 dbfs
+  volume_multiplier: 1
+  micro_wake_word: mww
+  use_wake_word: false
   
-  on_listening:
-    - logger.log: "Voice assistant listening"
-  
+  on_client_connected:
+    - micro_wake_word.start:
+        
+  on_client_disconnected:
+    - voice_assistant.stop:
+
   on_start:
     - logger.log: "Voice assistant started"
   
