@@ -52,6 +52,8 @@ wifi:
   ap:
     ssid: "Mrassistant Fallback Hotspot"
     password: "Cim4W4fjWQ6H"
+  fast_connect: true
+  power_save_mode: none
 
 captive_portal:
 
@@ -201,9 +203,9 @@ voice_assistant:
     microphone: i2s_audio_microphone
     channels: 0
   media_player: external_media_player
-  noise_suppression_level: 2
-  auto_gain: 31dBFS
-  volume_multiplier: 2.0
+  noise_suppression_level: 0
+  auto_gain: 0 dbfs
+  volume_multiplier: 1
   micro_wake_word: mww
   use_wake_word: false
   
