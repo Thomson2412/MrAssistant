@@ -51,7 +51,7 @@ wifi:
   password: !secret wifi_password
   ap:
     ssid: "Mrassistant Fallback Hotspot"
-    password: "Cim4W4fjWQ6H"
+    password: !secret wifi_ap_password
   fast_connect: true
   power_save_mode: none
 
